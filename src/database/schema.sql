@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS apps (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    app_name VARCHAR(255) NOT NULL,
+    app_id VARCHAR(255) NOT NULL UNIQUE,
+    package_name VARCHAR(255) NOT NULL,
+    version VARCHAR(50) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+); 
