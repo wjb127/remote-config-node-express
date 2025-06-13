@@ -13,6 +13,12 @@ class App {
     return result.rows[0];
   }
 
+  static async findByAppName(appName) {
+    const query = 'SELECT * FROM apps WHERE app_name ILIKE $1';
+    const result = await db.query(query, [`%${appName}%`]);
+    return result.rows;
+  }
+
   static async findByAppId(appId) {
     const query = 'SELECT * FROM apps WHERE app_id = $1';
     const result = await db.query(query, [appId]);

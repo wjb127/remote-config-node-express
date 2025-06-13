@@ -5,6 +5,9 @@ const appController = require('../controllers/appController');
 // 모든 앱 조회
 router.get('/', appController.getAllApps);
 
+// 앱 이름으로 조회
+router.get('/name/:name', appController.getAppByName);
+
 // 특정 앱 조회
 router.get('/:id', appController.getAppById);
 

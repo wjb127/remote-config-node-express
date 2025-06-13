@@ -21,6 +21,18 @@ exports.getAppById = async (req, res) => {
   }
 };
 
+exports.getAppByName = async (req, res) => {
+  try {
+    const apps = await App.findByAppName(req.params.name);
+    if (!apps || apps.length === 0) {
+      return res.status(404).json({ message: 'No apps found with that name' });
+    }
+    res.json(apps);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 exports.createApp = async (req, res) => {
   try {
     const app = await App.create(req.body);
