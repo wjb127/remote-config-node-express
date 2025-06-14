@@ -8,7 +8,13 @@ router.get('/', appController.getAllApps);
 // 앱 이름으로 조회
 router.get('/name/:name', appController.getAppByName);
 
-// 특정 앱 조회
+// 앱 상태별 조회
+router.get('/status/:status', appController.getAppsByStatus);
+
+// 앱 상세 정보 조회 (메뉴, 툴바, FCM 토픽, 스타일 포함)
+router.get('/:id/details', appController.getAppWithDetails);
+
+// 특정 앱 조회 (ID)
 router.get('/:id', appController.getAppById);
 
 // 새 앱 생성
