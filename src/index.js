@@ -27,10 +27,6 @@ testConnection().then(() => {
 
 // 라우트 설정
 app.use('/api', appRoutes);
-app.use('/api', menuRoutes);
-app.use('/api', toolbarRoutes);
-app.use('/api', fcmTopicRoutes);
-app.use('/api', styleRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
