@@ -1,11 +1,12 @@
 const App = require('../models/appModel');
 const MenuModel = require('../models/menuModel');
+const ToolbarModel = require('../models/toolbarModel');
 
 const configController = {
-  // 모바일 앱용 전체 설정 조회 (메뉴 정보 추가)
+  // 모바일 앱용 전체 설정 조회 (툴바 정보 추가)
   getAppConfig: async (req, res) => {
     try {
-      console.log('Config API 호출됨 (메뉴 정보 추가 버전)');
+      console.log('Config API 호출됨 (툴바 정보 추가 버전)');
       
       const { appId } = req.params;
       
@@ -41,13 +42,24 @@ const configController = {
         menus = [];
       }
 
+      // 툴바 정보 조회 시도
+      let toolbars = [];
+      try {
+        toolbars = await ToolbarModel.findByAppId(appId);
+        console.log('툴바 조회 성공:', toolbars.length, '개');
+      } catch (toolbarError) {
+        console.error('툴바 조회 오류:', toolbarError);
+        toolbars = [];
+      }
+
       // 성공 응답
       const response = {
-        message: "Config API 작동 중 - 앱 정보 + 메뉴 정보 포함",
+        message: "Config API 작동 중 - 앱 정보 + 메뉴 + 툴바 정보 포함",
         timestamp: new Date().toISOString(),
         appId: appId,
         app: app,
-        menus: menus
+        menus: menus,
+        toolbars: toolbars
       };
 
       res.json(response);
