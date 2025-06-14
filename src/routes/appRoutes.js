@@ -15,6 +15,12 @@ router.get('/apps/name/:name', appController.getAppByName);
 // 앱 상태별 조회
 router.get('/apps/status/:status', appController.getAppsByStatus);
 
+// 앱 통계 정보 조회
+router.get('/apps/:id/stats', appController.getAppStats);
+
+// 앱 설정 내보내기
+router.get('/apps/:id/export', appController.exportApp);
+
 // 앱 상세 정보 조회 (메뉴, 툴바, FCM 토픽, 스타일 포함)
 router.get('/apps/:id/details', appController.getAppWithDetails);
 
@@ -23,6 +29,9 @@ router.get('/apps/:id', appController.getAppById);
 
 // 새 앱 생성
 router.post('/apps', appController.createApp);
+
+// 앱 복제
+router.post('/apps/:id/clone', appController.cloneApp);
 
 // 앱 정보 업데이트
 router.put('/apps/:id', appController.updateApp);

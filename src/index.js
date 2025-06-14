@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const appRoutes = require('./routes/appRoutes');
+const configRoutes = require('./routes/configRoutes');
 const menuRoutes = require('./routes/menuRoutes');
 const toolbarRoutes = require('./routes/toolbarRoutes');
 const fcmTopicRoutes = require('./routes/fcmTopicRoutes');
@@ -27,6 +28,7 @@ testConnection().then(() => {
 
 // 라우트 설정
 app.use('/api', appRoutes);
+app.use('/api/config', configRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
