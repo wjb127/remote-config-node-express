@@ -1,20 +1,20 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const toolbarController = require('../controllers/toolbarController');
 
 // 앱의 모든 툴바 조회
-router.get('/apps/:appId/toolbars', toolbarController.getAllToolbars);
+router.get('/', toolbarController.getAllToolbars);
 
 // 특정 툴바 조회
-router.get('/apps/:appId/toolbars/:id', toolbarController.getToolbarById);
+router.get('/:id', toolbarController.getToolbarById);
 
 // 새 툴바 생성
-router.post('/apps/:appId/toolbars', toolbarController.createToolbar);
+router.post('/', toolbarController.createToolbar);
 
 // 툴바 수정
-router.put('/apps/:appId/toolbars/:id', toolbarController.updateToolbar);
+router.put('/:id', toolbarController.updateToolbar);
 
 // 툴바 삭제
-router.delete('/apps/:appId/toolbars/:id', toolbarController.deleteToolbar);
+router.delete('/:id', toolbarController.deleteToolbar);
 
 module.exports = router; 

@@ -1,23 +1,23 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 const styleController = require('../controllers/styleController');
 
 // 앱의 모든 스타일 조회
-router.get('/apps/:appId/styles', styleController.getAllStyles);
-
-// 특정 스타일 조회
-router.get('/apps/:appId/styles/:id', styleController.getStyleById);
+router.get('/', styleController.getAllStyles);
 
 // 스타일 키로 조회
-router.get('/apps/:appId/styles/key/:styleKey', styleController.getStyleByKey);
+router.get('/key/:styleKey', styleController.getStyleByKey);
+
+// 특정 스타일 조회
+router.get('/:id', styleController.getStyleById);
 
 // 새 스타일 생성
-router.post('/apps/:appId/styles', styleController.createStyle);
+router.post('/', styleController.createStyle);
 
 // 스타일 수정
-router.put('/apps/:appId/styles/:id', styleController.updateStyle);
+router.put('/:id', styleController.updateStyle);
 
 // 스타일 삭제
-router.delete('/apps/:appId/styles/:id', styleController.deleteStyle);
+router.delete('/:id', styleController.deleteStyle);
 
 module.exports = router; 
