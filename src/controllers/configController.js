@@ -11,13 +11,25 @@ const configController = {
     try {
       const { appId } = req.params;
       
-      // 앱 정보 조회
-      const app = await App.findByAppId(appId);
+      // 앱 정보 조회 - UUID 형태인지 app_id 형태인지 확인
+      let app;
+      
+      // UUID 형태인지 확인 (36자리, 하이픈 포함)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appId);
+      
+      if (isUUID) {
+        // UUID로 검색
+        app = await App.findById(appId);
+      } else {
+        // app_id로 검색
+        app = await App.findByAppId(appId);
+      }
+      
       if (!app) {
         return ApiResponse.notFound(res, 'App not found');
       }
 
-      // 모든 관련 데이터 병렬 조회
+      // 모든 관련 데이터 병렬 조회 (app.id 사용)
       const [menus, toolbars, fcmTopics, styles] = await Promise.all([
         MenuModel.findAllByAppId(app.id),
         ToolbarModel.findAllByAppId(app.id),
