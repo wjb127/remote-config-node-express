@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const appController = require('../controllers/appController');
 const menuRoutes = require('./menuRoutes');
+const toolbarRoutes = require('./toolbarRoutes');
 
 // 모든 앱 조회
 router.get('/', appController.getAllApps);
@@ -29,5 +30,8 @@ router.delete('/:id', appController.deleteApp);
 
 // 메뉴 관련 라우트
 router.use('/:appId/menus', menuRoutes);
+
+// 툴바 관련 라우트
+router.use('/:appId/toolbars', toolbarRoutes);
 
 module.exports = router; 
