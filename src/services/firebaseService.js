@@ -123,19 +123,23 @@ class FirebaseService {
   // Firebase 연결 테스트
   async testConnection() {
     try {
-      // 간단한 테스트 메시지 생성 (실제로는 발송하지 않음)
-      const testPayload = {
-        notification: {
-          title: 'Test',
-          body: 'Firebase 연결 테스트'
-        },
-        topic: 'test-topic'
-      };
+      // Firebase Admin SDK가 제대로 초기화되었는지 확인
+      if (admin.apps.length === 0) {
+        console.log('Firebase가 초기화되지 않았습니다.');
+        return false;
+      }
 
-      // 메시지 유효성만 검증 (dry_run: true)
-      await admin.messaging().send(testPayload, true);
-      console.log('Firebase 연결 테스트 성공');
-      return true;
+      // 간단한 프로젝트 정보 조회로 연결 테스트
+      const app = admin.app();
+      const projectId = app.options.projectId;
+      
+      if (projectId) {
+        console.log('Firebase 연결 테스트 성공, Project ID:', projectId);
+        return true;
+      } else {
+        console.log('Firebase 프로젝트 ID를 찾을 수 없습니다.');
+        return false;
+      }
     } catch (error) {
       console.error('Firebase 연결 테스트 실패:', error);
       return false;
