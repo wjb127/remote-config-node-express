@@ -3,47 +3,53 @@ class ApiResponse {
     return {
       success: true,
       data,
-      message
+      message,
+      error: null
     };
   }
 
-  static error(error, message = 'Error') {
+  static error(error, message = 'Error occurred') {
     return {
       success: false,
-      error: error.message || error,
-      message
+      data: null,
+      message,
+      error
     };
   }
 
   static notFound(message = 'Resource not found') {
     return {
       success: false,
-      error: 'Not Found',
-      message
+      data: null,
+      message,
+      error: 'NOT_FOUND'
     };
   }
 
-  static badRequest(message = 'Bad Request') {
+  static badRequest(message = 'Bad request') {
     return {
       success: false,
-      error: 'Bad Request',
-      message
+      data: null,
+      message,
+      error: 'BAD_REQUEST'
     };
   }
 
   static unauthorized(message = 'Unauthorized') {
     return {
       success: false,
-      error: 'Unauthorized',
-      message
+      data: null,
+      message,
+      error: 'UNAUTHORIZED'
     };
   }
 
   static forbidden(message = 'Forbidden') {
     return {
       success: false,
-      error: 'Forbidden',
-      message
+      data: null,
+      message,
+      error: 'FORBIDDEN'
     };
   }
 }

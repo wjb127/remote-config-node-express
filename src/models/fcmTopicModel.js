@@ -4,9 +4,9 @@ class FcmTopicModel {
   // 앱 ID로 모든 FCM 토픽 조회
   static async findAllByAppId(appId) {
     const query = `
-      SELECT * FROM public.fcm_topic 
+      SELECT * FROM public.app_fcm_topic 
       WHERE app_id = $1 
-      ORDER BY created_at DESC
+      ORDER BY topic_name ASC
     `;
     const result = await pool.query(query, [appId]);
     return result.rows;
@@ -14,15 +14,15 @@ class FcmTopicModel {
 
   // ID로 FCM 토픽 조회
   static async findById(id) {
-    const query = 'SELECT * FROM public.fcm_topic WHERE id = $1';
+    const query = 'SELECT * FROM public.app_fcm_topic WHERE id = $1';
     const result = await pool.query(query, [id]);
     return result.rows[0];
   }
 
-  // 토픽 이름으로 조회
-  static async findByTopicName(appId, topicName) {
-    const query = 'SELECT * FROM public.fcm_topic WHERE app_id = $1 AND topic_name = $2';
-    const result = await pool.query(query, [appId, topicName]);
+  // 토픽 ID로 FCM 토픽 조회
+  static async findByTopicId(appId, topicId) {
+    const query = 'SELECT * FROM public.app_fcm_topic WHERE app_id = $1 AND topic_id = $2';
+    const result = await pool.query(query, [appId, topicId]);
     return result.rows[0];
   }
 
@@ -31,18 +31,26 @@ class FcmTopicModel {
     const {
       app_id,
       topic_name,
+      topic_id,
       description,
+      is_default,
       is_active
     } = topicData;
 
     const query = `
-      INSERT INTO public.fcm_topic (
-        app_id, topic_name, description, is_active
+      INSERT INTO public.app_fcm_topic (
+        app_id, topic_name, topic_id, description,
+        is_default, is_active
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
-    const values = [app_id, topic_name, description, is_active];
+
+    const values = [
+      app_id, topic_name, topic_id, description,
+      is_default, is_active
+    ];
+
     const result = await pool.query(query, values);
     return result.rows[0];
   }
@@ -52,27 +60,34 @@ class FcmTopicModel {
     const {
       topic_name,
       description,
+      is_default,
       is_active
     } = topicData;
 
     const query = `
-      UPDATE public.fcm_topic
+      UPDATE public.app_fcm_topic
       SET 
         topic_name = COALESCE($1, topic_name),
         description = COALESCE($2, description),
-        is_active = COALESCE($3, is_active),
+        is_default = COALESCE($3, is_default),
+        is_active = COALESCE($4, is_active),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $4
+      WHERE id = $5
       RETURNING *
     `;
-    const values = [topic_name, description, is_active, id];
+
+    const values = [
+      topic_name, description,
+      is_default, is_active, id
+    ];
+
     const result = await pool.query(query, values);
     return result.rows[0];
   }
 
   // FCM 토픽 삭제
   static async delete(id) {
-    const query = 'DELETE FROM public.fcm_topic WHERE id = $1 RETURNING *';
+    const query = 'DELETE FROM public.app_fcm_topic WHERE id = $1 RETURNING *';
     const result = await pool.query(query, [id]);
     return result.rows[0];
   }

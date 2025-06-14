@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const fcmTopicController = require('../controllers/fcmTopicController');
 
-// FCM 토픽 목록 조회
-router.get('/', fcmTopicController.getAllTopics);
-
-// 토픽 이름으로 조회
-router.get('/name/:topicName', fcmTopicController.getTopicByName);
+// 앱의 모든 FCM 토픽 조회
+router.get('/apps/:appId/fcm-topics', fcmTopicController.getAllTopics);
 
 // 특정 FCM 토픽 조회
-router.get('/:topicId', fcmTopicController.getTopicById);
+router.get('/apps/:appId/fcm-topics/:id', fcmTopicController.getTopicById);
+
+// 토픽 ID로 FCM 토픽 조회
+router.get('/apps/:appId/fcm-topics/topic/:topicId', fcmTopicController.getTopicByTopicId);
 
 // 새 FCM 토픽 생성
-router.post('/', fcmTopicController.createTopic);
+router.post('/apps/:appId/fcm-topics', fcmTopicController.createTopic);
 
 // FCM 토픽 수정
-router.put('/:topicId', fcmTopicController.updateTopic);
+router.put('/apps/:appId/fcm-topics/:id', fcmTopicController.updateTopic);
 
 // FCM 토픽 삭제
-router.delete('/:topicId', fcmTopicController.deleteTopic);
+router.delete('/apps/:appId/fcm-topics/:id', fcmTopicController.deleteTopic);
 
 module.exports = router; 
