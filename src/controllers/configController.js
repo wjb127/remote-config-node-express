@@ -2,12 +2,13 @@ const App = require('../models/appModel');
 const MenuModel = require('../models/menuModel');
 const ToolbarModel = require('../models/toolbarModel');
 const FcmTopicModel = require('../models/fcmTopicModel');
+const StyleModel = require('../models/styleModel');
 
 const configController = {
-  // 모바일 앱용 전체 설정 조회 (올바른 메서드명 사용)
+  // 모바일 앱용 전체 설정 조회 (완전한 버전 - 스타일 포함)
   getAppConfig: async (req, res) => {
     try {
-      console.log('Config API 호출됨 (올바른 메서드명 사용 버전)');
+      console.log('Config API 호출됨 (완전한 버전 - 스타일 포함)');
       
       const { appId } = req.params;
       
@@ -33,7 +34,7 @@ const configController = {
         });
       }
 
-      // 메뉴 정보 조회 시도 (올바른 메서드명 사용)
+      // 메뉴 정보 조회 시도
       let menus = [];
       try {
         menus = await MenuModel.findAllByAppId(appId);
@@ -43,7 +44,7 @@ const configController = {
         menus = [];
       }
 
-      // 툴바 정보 조회 시도 (올바른 메서드명 확인 필요)
+      // 툴바 정보 조회 시도
       let toolbars = [];
       try {
         toolbars = await ToolbarModel.findAllByAppId(appId);
@@ -53,7 +54,7 @@ const configController = {
         toolbars = [];
       }
 
-      // FCM 토픽 정보 조회 시도 (올바른 메서드명 확인 필요)
+      // FCM 토픽 정보 조회 시도
       let fcmTopics = [];
       try {
         fcmTopics = await FcmTopicModel.findAllByAppId(appId);
@@ -63,15 +64,26 @@ const configController = {
         fcmTopics = [];
       }
 
-      // 성공 응답
+      // 스타일 정보 조회 시도
+      let styles = [];
+      try {
+        styles = await StyleModel.findAllByAppId(appId);
+        console.log('스타일 조회 성공:', styles.length, '개');
+      } catch (styleError) {
+        console.error('스타일 조회 오류:', styleError);
+        styles = [];
+      }
+
+      // 완전한 설정 응답
       const response = {
-        message: "Config API 작동 중 - 올바른 메서드명으로 데이터 조회",
+        message: "Config API 완성 - 모든 설정 정보 포함",
         timestamp: new Date().toISOString(),
         appId: appId,
         app: app,
         menus: menus,
         toolbars: toolbars,
-        fcm_topics: fcmTopics
+        fcm_topics: fcmTopics,
+        styles: styles
       };
 
       res.json(response);
