@@ -1,12 +1,13 @@
 const App = require('../models/appModel');
 const MenuModel = require('../models/menuModel');
 const ToolbarModel = require('../models/toolbarModel');
+const FcmTopicModel = require('../models/fcmTopicModel');
 
 const configController = {
-  // 모바일 앱용 전체 설정 조회 (툴바 정보 추가)
+  // 모바일 앱용 전체 설정 조회 (FCM 토픽 정보 추가)
   getAppConfig: async (req, res) => {
     try {
-      console.log('Config API 호출됨 (툴바 정보 추가 버전)');
+      console.log('Config API 호출됨 (FCM 토픽 정보 추가 버전)');
       
       const { appId } = req.params;
       
@@ -52,14 +53,25 @@ const configController = {
         toolbars = [];
       }
 
+      // FCM 토픽 정보 조회 시도
+      let fcmTopics = [];
+      try {
+        fcmTopics = await FcmTopicModel.findByAppId(appId);
+        console.log('FCM 토픽 조회 성공:', fcmTopics.length, '개');
+      } catch (fcmError) {
+        console.error('FCM 토픽 조회 오류:', fcmError);
+        fcmTopics = [];
+      }
+
       // 성공 응답
       const response = {
-        message: "Config API 작동 중 - 앱 정보 + 메뉴 + 툴바 정보 포함",
+        message: "Config API 작동 중 - 앱 정보 + 메뉴 + 툴바 + FCM 토픽 정보 포함",
         timestamp: new Date().toISOString(),
         appId: appId,
         app: app,
         menus: menus,
-        toolbars: toolbars
+        toolbars: toolbars,
+        fcm_topics: fcmTopics
       };
 
       res.json(response);
