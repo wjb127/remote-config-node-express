@@ -3,6 +3,7 @@ const router = express.Router();
 const appController = require('../controllers/appController');
 const menuRoutes = require('./menuRoutes');
 const toolbarRoutes = require('./toolbarRoutes');
+const fcmTopicRoutes = require('./fcmTopicRoutes');
 
 // 모든 앱 조회
 router.get('/', appController.getAllApps);
@@ -33,5 +34,8 @@ router.use('/:appId/menus', menuRoutes);
 
 // 툴바 관련 라우트
 router.use('/:appId/toolbars', toolbarRoutes);
+
+// FCM 토픽 관련 라우트
+router.use('/:appId/fcm-topics', fcmTopicRoutes);
 
 module.exports = router; 
