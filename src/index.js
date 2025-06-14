@@ -30,7 +30,12 @@ testConnection().then(() => {
 // 라우트 설정
 app.use('/api', appRoutes);
 app.use('/api/config', configRoutes);
-app.use('/api', fcmMessageRoutes);
+app.use('/api/fcm', fcmMessageRoutes);
+
+console.log('🚀 [SERVER] 등록된 라우트:');
+console.log('   - /api/* (앱 관련)');
+console.log('   - /api/config/* (설정)');
+console.log('   - /api/fcm/* (FCM 메시징)');
 
 // 기본 라우트
 app.get('/', (req, res) => {
