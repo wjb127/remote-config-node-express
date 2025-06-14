@@ -1,32 +1,23 @@
 const App = require('../models/appModel');
 
 const configController = {
-  // 모바일 앱용 전체 설정 조회 (UUID만 지원, 최소 버전)
+  // 모바일 앱용 전체 설정 조회 (가장 간단한 버전)
   getAppConfig: async (req, res) => {
     try {
-      const { appId } = req.params;
-      console.log('Config API 호출됨 (최소 버전):', appId);
+      console.log('Config API 호출됨 (가장 간단한 버전)');
       
-      // UUID 형태인지 확인
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(appId);
-      
-      if (!isUUID) {
-        return res.status(400).json({ message: 'UUID 형태의 앱 ID만 지원합니다.' });
-      }
-      
-      // UUID로 앱 조회 (getAppById와 동일한 방식)
-      const app = await App.findById(appId);
-      
-      if (!app) {
-        return res.status(404).json({ message: 'App not found' });
-      }
+      // 하드코딩된 응답으로 시작
+      const response = {
+        message: "Config API 작동 중",
+        timestamp: new Date().toISOString(),
+        appId: req.params.appId
+      };
 
-      // 앱 정보만 반환 (getAppById와 동일)
-      res.json(app);
+      res.json(response);
       
     } catch (error) {
-      console.error('Get app config error:', error);
-      res.status(500).json({ error: error.message });
+      console.error('Config API 오류:', error);
+      res.status(500).json({ error: "서버 오류" });
     }
   }
 };
