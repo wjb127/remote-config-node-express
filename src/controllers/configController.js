@@ -1,10 +1,11 @@
 const App = require('../models/appModel');
+const MenuModel = require('../models/menuModel');
 
 const configController = {
-  // 모바일 앱용 전체 설정 조회 (단계별 추가)
+  // 모바일 앱용 전체 설정 조회 (메뉴 정보 추가)
   getAppConfig: async (req, res) => {
     try {
-      console.log('Config API 호출됨 (앱 정보 추가 버전)');
+      console.log('Config API 호출됨 (메뉴 정보 추가 버전)');
       
       const { appId } = req.params;
       
@@ -30,12 +31,23 @@ const configController = {
         });
       }
 
+      // 메뉴 정보 조회 시도
+      let menus = [];
+      try {
+        menus = await MenuModel.findByAppId(appId);
+        console.log('메뉴 조회 성공:', menus.length, '개');
+      } catch (menuError) {
+        console.error('메뉴 조회 오류:', menuError);
+        menus = [];
+      }
+
       // 성공 응답
       const response = {
-        message: "Config API 작동 중 - 앱 정보 포함",
+        message: "Config API 작동 중 - 앱 정보 + 메뉴 정보 포함",
         timestamp: new Date().toISOString(),
         appId: appId,
-        app: app
+        app: app,
+        menus: menus
       };
 
       res.json(response);
