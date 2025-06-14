@@ -4,6 +4,7 @@ const appController = require('../controllers/appController');
 const menuRoutes = require('./menuRoutes');
 const toolbarRoutes = require('./toolbarRoutes');
 const fcmTopicRoutes = require('./fcmTopicRoutes');
+const styleRoutes = require('./styleRoutes');
 
 // 모든 앱 조회
 router.get('/', appController.getAllApps);
@@ -37,5 +38,8 @@ router.use('/:appId/toolbars', toolbarRoutes);
 
 // FCM 토픽 관련 라우트
 router.use('/:appId/fcm-topics', fcmTopicRoutes);
+
+// 스타일 관련 라우트
+router.use('/:appId/styles', styleRoutes);
 
 module.exports = router; 
