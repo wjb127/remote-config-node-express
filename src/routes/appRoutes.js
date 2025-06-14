@@ -6,8 +6,17 @@ const toolbarRoutes = require('./toolbarRoutes');
 const fcmTopicRoutes = require('./fcmTopicRoutes');
 const styleRoutes = require('./styleRoutes');
 
-// 모든 앱 조회
-router.get('/', appController.getAllApps);
+// 메뉴 관련 라우트
+router.use('/:appId/menus', menuRoutes);
+
+// 툴바 관련 라우트
+router.use('/:appId/toolbars', toolbarRoutes);
+
+// FCM 토픽 관련 라우트
+router.use('/:appId/fcm-topics', fcmTopicRoutes);
+
+// 스타일 관련 라우트
+router.use('/:appId/styles', styleRoutes);
 
 // 앱 이름으로 조회
 router.get('/name/:name', appController.getAppByName);
@@ -17,6 +26,9 @@ router.get('/status/:status', appController.getAppsByStatus);
 
 // 앱 상세 정보 조회 (메뉴, 툴바, FCM 토픽, 스타일 포함)
 router.get('/:id/details', appController.getAppWithDetails);
+
+// 모든 앱 조회
+router.get('/', appController.getAllApps);
 
 // 특정 앱 조회 (ID)
 router.get('/:id', appController.getAppById);
@@ -29,17 +41,5 @@ router.put('/:id', appController.updateApp);
 
 // 앱 삭제
 router.delete('/:id', appController.deleteApp);
-
-// 메뉴 관련 라우트
-router.use('/:appId/menus', menuRoutes);
-
-// 툴바 관련 라우트
-router.use('/:appId/toolbars', toolbarRoutes);
-
-// FCM 토픽 관련 라우트
-router.use('/:appId/fcm-topics', fcmTopicRoutes);
-
-// 스타일 관련 라우트
-router.use('/:appId/styles', styleRoutes);
 
 module.exports = router; 
