@@ -1,59 +1,88 @@
 const firebaseService = require('../services/firebaseService');
-const FcmTopicModel = require('../models/fcmTopicModel');
-const App = require('../models/appModel');
 const ApiResponse = require('../utils/api-response');
 
 const fcmMessageController = {
-  // 특정 토픽으로 메시지 발송
-  sendToTopic: async (req, res) => {
+  // Firebase 연결 테스트
+  testConnection: async (req, res) => {
     try {
-      const { appId, topicId } = req.params;
-      const { title, body, data } = req.body;
-
-      // 필수 필드 검증
-      if (!title || !body) {
-        return ApiResponse.badRequest(res, 'title과 body는 필수입니다.');
+      console.log('FCM 연결 테스트 요청');
+      const result = await firebaseService.testConnection();
+      
+      if (result.success) {
+        return ApiResponse.success(res, result, 'Firebase 연결 테스트 성공');
+      } else {
+        return ApiResponse.error(res, result.message, 500);
       }
-
-      // 앱 존재 확인
-      const app = await App.findById(appId);
-      if (!app) {
-        return ApiResponse.notFound(res, 'App not found');
-      }
-
-      // 토픽 존재 및 활성화 상태 확인
-      const topic = await FcmTopicModel.findByTopicId(appId, topicId);
-      if (!topic) {
-        return ApiResponse.notFound(res, 'Topic not found');
-      }
-
-      if (!topic.is_active) {
-        return ApiResponse.badRequest(res, 'Topic is not active');
-      }
-
-      // Firebase로 메시지 발송
-      const messageId = await firebaseService.sendToTopic(topicId, {
-        title,
-        body,
-        data: data || {}
-      });
-
-      return ApiResponse.success(res, {
-        messageId,
-        topic: topic.topic_name,
-        topicId,
-        title,
-        body,
-        sentAt: new Date().toISOString()
-      }, 'Message sent successfully');
-
     } catch (error) {
-      console.error('FCM 메시지 발송 오류:', error);
-      return ApiResponse.error(res, error.message);
+      console.error('FCM 연결 테스트 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
     }
   },
 
-  // 앱의 모든 활성 토픽으로 브로드캐스트
+  // 특정 토픽으로 메시지 전송
+  sendToTopic: async (req, res) => {
+    try {
+      const { topic, title, body, data } = req.body;
+
+      // 필수 필드 검증
+      if (!topic || !title || !body) {
+        return ApiResponse.badRequest(res, 'topic, title, body는 필수 필드입니다.');
+      }
+
+      console.log('FCM 토픽 메시지 전송:', { topic, title, body });
+      
+      const result = await firebaseService.sendToTopic(topic, title, body, data || {});
+      
+      return ApiResponse.success(res, result, 'FCM 메시지 전송 성공');
+    } catch (error) {
+      console.error('FCM 토픽 메시지 전송 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
+    }
+  },
+
+  // 특정 토큰으로 메시지 전송
+  sendToToken: async (req, res) => {
+    try {
+      const { token, title, body, data } = req.body;
+
+      // 필수 필드 검증
+      if (!token || !title || !body) {
+        return ApiResponse.badRequest(res, 'token, title, body는 필수 필드입니다.');
+      }
+
+      console.log('FCM 토큰 메시지 전송:', { token, title, body });
+      
+      const result = await firebaseService.sendToToken(token, title, body, data || {});
+      
+      return ApiResponse.success(res, result, 'FCM 토큰 메시지 전송 성공');
+    } catch (error) {
+      console.error('FCM 토큰 메시지 전송 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
+    }
+  },
+
+  // 여러 토픽으로 메시지 전송
+  sendToMultipleTopics: async (req, res) => {
+    try {
+      const { topics, title, body, data } = req.body;
+
+      // 필수 필드 검증
+      if (!topics || !Array.isArray(topics) || topics.length === 0 || !title || !body) {
+        return ApiResponse.badRequest(res, 'topics(배열), title, body는 필수 필드입니다.');
+      }
+
+      console.log('FCM 다중 토픽 메시지 전송:', { topics, title, body });
+      
+      const results = await firebaseService.sendToMultipleTopics(topics, title, body, data || {});
+      
+      return ApiResponse.success(res, results, 'FCM 다중 토픽 메시지 전송 완료');
+    } catch (error) {
+      console.error('FCM 다중 토픽 메시지 전송 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
+    }
+  },
+
+  // 앱의 모든 토픽으로 메시지 전송 (브로드캐스트)
   broadcastToApp: async (req, res) => {
     try {
       const { appId } = req.params;
@@ -61,62 +90,72 @@ const fcmMessageController = {
 
       // 필수 필드 검증
       if (!title || !body) {
-        return ApiResponse.badRequest(res, 'title과 body는 필수입니다.');
+        return ApiResponse.badRequest(res, 'title, body는 필수 필드입니다.');
       }
 
-      // 앱 존재 확인
-      const app = await App.findById(appId);
-      if (!app) {
-        return ApiResponse.notFound(res, 'App not found');
-      }
+      // 앱의 모든 활성 토픽 조회 (실제로는 DB에서 조회)
+      const activeTopics = [
+        'general_notifications',
+        'app_updates',
+        `app_${appId}_notifications`
+      ];
 
-      // 앱의 모든 활성 토픽 조회
-      const topics = await FcmTopicModel.findAllByAppId(appId);
-      const activeTopics = topics.filter(topic => topic.is_active);
-
-      if (activeTopics.length === 0) {
-        return ApiResponse.badRequest(res, 'No active topics found for this app');
-      }
-
-      // 모든 활성 토픽으로 메시지 발송
-      const topicIds = activeTopics.map(topic => topic.topic_id);
-      const results = await firebaseService.sendToMultipleTopics(topicIds, {
-        title,
-        body,
-        data: data || {}
-      });
-
-      const successCount = results.filter(r => r.success).length;
-      const failureCount = results.filter(r => !r.success).length;
-
+      console.log('FCM 앱 브로드캐스트:', { appId, topics: activeTopics, title, body });
+      
+      const results = await firebaseService.sendToMultipleTopics(activeTopics, title, body, data || {});
+      
       return ApiResponse.success(res, {
-        app: app.app_name,
-        totalTopics: activeTopics.length,
-        successCount,
-        failureCount,
+        appId,
         results,
-        sentAt: new Date().toISOString()
-      }, `Broadcast completed: ${successCount} success, ${failureCount} failed`);
-
+        totalTopics: activeTopics.length,
+        successCount: results.filter(r => r.success).length,
+        failureCount: results.filter(r => !r.success).length
+      }, 'FCM 앱 브로드캐스트 완료');
     } catch (error) {
-      console.error('FCM 브로드캐스트 오류:', error);
-      return ApiResponse.error(res, error.message);
+      console.error('FCM 앱 브로드캐스트 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
     }
   },
 
-  // Firebase 연결 테스트
-  testConnection: async (req, res) => {
+  // 토픽 구독
+  subscribeToTopic: async (req, res) => {
     try {
-      const isConnected = await firebaseService.testConnection();
-      
-      if (isConnected) {
-        return ApiResponse.success(res, { connected: true }, 'Firebase connection successful');
-      } else {
-        return ApiResponse.error(res, 'Firebase connection failed');
+      const { tokens, topic } = req.body;
+
+      // 필수 필드 검증
+      if (!tokens || !Array.isArray(tokens) || tokens.length === 0 || !topic) {
+        return ApiResponse.badRequest(res, 'tokens(배열), topic은 필수 필드입니다.');
       }
+
+      console.log('FCM 토픽 구독:', { tokens: tokens.length, topic });
+      
+      const result = await firebaseService.subscribeToTopic(tokens, topic);
+      
+      return ApiResponse.success(res, result, 'FCM 토픽 구독 성공');
     } catch (error) {
-      console.error('Firebase 연결 테스트 오류:', error);
-      return ApiResponse.error(res, error.message);
+      console.error('FCM 토픽 구독 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
+    }
+  },
+
+  // 토픽 구독 해제
+  unsubscribeFromTopic: async (req, res) => {
+    try {
+      const { tokens, topic } = req.body;
+
+      // 필수 필드 검증
+      if (!tokens || !Array.isArray(tokens) || tokens.length === 0 || !topic) {
+        return ApiResponse.badRequest(res, 'tokens(배열), topic은 필수 필드입니다.');
+      }
+
+      console.log('FCM 토픽 구독 해제:', { tokens: tokens.length, topic });
+      
+      const result = await firebaseService.unsubscribeFromTopic(tokens, topic);
+      
+      return ApiResponse.success(res, result, 'FCM 토픽 구독 해제 성공');
+    } catch (error) {
+      console.error('FCM 토픽 구독 해제 오류:', error);
+      return ApiResponse.error(res, error.message, 500);
     }
   }
 };

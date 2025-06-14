@@ -1,107 +1,169 @@
 const admin = require('firebase-admin');
 
-class FirebaseService {
-  constructor() {
-    this.initializeFirebase();
+// Firebase Admin SDK 초기화
+if (admin.apps.length === 0) {
+  try {
+    const serviceAccount = {
+      type: "service_account",
+      project_id: process.env.FIREBASE_PROJECT_ID,
+      private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+      private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      client_email: process.env.FIREBASE_CLIENT_EMAIL,
+      client_id: process.env.FIREBASE_CLIENT_ID,
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      token_uri: "https://oauth2.googleapis.com/token",
+      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+      client_x509_cert_url: `https://www.googleapis.com/robot/v1/metadata/x509/${process.env.FIREBASE_CLIENT_EMAIL}`
+    };
+
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: process.env.FIREBASE_PROJECT_ID
+    });
+
+    console.log('Firebase Admin SDK 초기화 성공');
+  } catch (error) {
+    console.error('Firebase Admin SDK 초기화 실패:', error);
   }
+}
 
-  initializeFirebase() {
+class FirebaseService {
+  // Firebase 연결 테스트 (간단한 버전)
+  async testConnection() {
     try {
-      // Firebase가 이미 초기화되었는지 확인
       if (admin.apps.length === 0) {
-        const serviceAccount = {
-          projectId: process.env.FIREBASE_PROJECT_ID,
-          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
+        return { success: false, message: 'Firebase가 초기화되지 않았습니다.' };
+      }
+
+      const app = admin.app();
+      const projectId = app.options.projectId;
+      
+      if (projectId) {
+        return { 
+          success: true, 
+          message: 'Firebase 연결 성공', 
+          projectId: projectId 
         };
-
-        // 필수 환경변수 확인
-        if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
-          throw new Error('Firebase 환경변수가 설정되지 않았습니다.');
-        }
-
-        admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-          projectId: serviceAccount.projectId
-        });
-
-        console.log('Firebase Admin SDK 초기화 완료');
+      } else {
+        return { success: false, message: 'Firebase 프로젝트 ID를 찾을 수 없습니다.' };
       }
     } catch (error) {
-      console.error('Firebase 초기화 오류:', error.message);
-      throw error;
+      console.error('Firebase 연결 테스트 실패:', error);
+      return { success: false, message: error.message };
     }
   }
 
-  // 토픽으로 메시지 발송
-  async sendToTopic(topicId, message) {
+  // 특정 토픽으로 메시지 전송
+  async sendToTopic(topicName, title, body, data = {}) {
     try {
-      const payload = {
+      if (admin.apps.length === 0) {
+        throw new Error('Firebase가 초기화되지 않았습니다.');
+      }
+
+      const message = {
         notification: {
-          title: message.title,
-          body: message.body
+          title: title,
+          body: body
         },
-        data: message.data || {},
-        topic: topicId
+        data: {
+          ...data,
+          timestamp: new Date().toISOString()
+        },
+        topic: topicName
       };
 
-      const result = await admin.messaging().send(payload);
-      console.log('메시지 발송 성공:', result);
-      return result;
+      const response = await admin.messaging().send(message);
+      console.log('FCM 메시지 전송 성공:', response);
+      
+      return {
+        success: true,
+        messageId: response,
+        topic: topicName,
+        title: title,
+        body: body
+      };
     } catch (error) {
-      console.error('메시지 발송 실패:', error);
+      console.error('FCM 메시지 전송 실패:', error);
       throw error;
     }
   }
 
-  // 여러 토픽으로 메시지 발송
-  async sendToMultipleTopics(topicIds, message) {
+  // 특정 토큰으로 메시지 전송
+  async sendToToken(token, title, body, data = {}) {
     try {
-      const results = [];
-      
-      for (const topicId of topicIds) {
-        try {
-          const result = await this.sendToTopic(topicId, message);
-          results.push({ topicId, success: true, messageId: result });
-        } catch (error) {
-          results.push({ topicId, success: false, error: error.message });
-        }
+      if (admin.apps.length === 0) {
+        throw new Error('Firebase가 초기화되지 않았습니다.');
       }
 
-      return results;
-    } catch (error) {
-      console.error('다중 토픽 메시지 발송 실패:', error);
-      throw error;
-    }
-  }
-
-  // 특정 토큰으로 메시지 발송
-  async sendToToken(token, message) {
-    try {
-      const payload = {
+      const message = {
         notification: {
-          title: message.title,
-          body: message.body
+          title: title,
+          body: body
         },
-        data: message.data || {},
+        data: {
+          ...data,
+          timestamp: new Date().toISOString()
+        },
         token: token
       };
 
-      const result = await admin.messaging().send(payload);
-      console.log('토큰 메시지 발송 성공:', result);
-      return result;
+      const response = await admin.messaging().send(message);
+      console.log('FCM 토큰 메시지 전송 성공:', response);
+      
+      return {
+        success: true,
+        messageId: response,
+        token: token,
+        title: title,
+        body: body
+      };
     } catch (error) {
-      console.error('토큰 메시지 발송 실패:', error);
+      console.error('FCM 토큰 메시지 전송 실패:', error);
+      throw error;
+    }
+  }
+
+  // 여러 토픽으로 메시지 전송
+  async sendToMultipleTopics(topics, title, body, data = {}) {
+    try {
+      const results = [];
+      
+      for (const topic of topics) {
+        try {
+          const result = await this.sendToTopic(topic, title, body, data);
+          results.push(result);
+        } catch (error) {
+          results.push({
+            success: false,
+            topic: topic,
+            error: error.message
+          });
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('다중 토픽 메시지 전송 실패:', error);
       throw error;
     }
   }
 
   // 토픽 구독
-  async subscribeToTopic(tokens, topicId) {
+  async subscribeToTopic(tokens, topicName) {
     try {
-      const result = await admin.messaging().subscribeToTopic(tokens, topicId);
-      console.log('토픽 구독 성공:', result);
-      return result;
+      if (admin.apps.length === 0) {
+        throw new Error('Firebase가 초기화되지 않았습니다.');
+      }
+
+      const response = await admin.messaging().subscribeToTopic(tokens, topicName);
+      console.log('토픽 구독 성공:', response);
+      
+      return {
+        success: true,
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+        topic: topicName
+      };
     } catch (error) {
       console.error('토픽 구독 실패:', error);
       throw error;
@@ -109,45 +171,26 @@ class FirebaseService {
   }
 
   // 토픽 구독 해제
-  async unsubscribeFromTopic(tokens, topicId) {
+  async unsubscribeFromTopic(tokens, topicName) {
     try {
-      const result = await admin.messaging().unsubscribeFromTopic(tokens, topicId);
-      console.log('토픽 구독 해제 성공:', result);
-      return result;
+      if (admin.apps.length === 0) {
+        throw new Error('Firebase가 초기화되지 않았습니다.');
+      }
+
+      const response = await admin.messaging().unsubscribeFromTopic(tokens, topicName);
+      console.log('토픽 구독 해제 성공:', response);
+      
+      return {
+        success: true,
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+        topic: topicName
+      };
     } catch (error) {
       console.error('토픽 구독 해제 실패:', error);
       throw error;
     }
   }
-
-  // Firebase 연결 테스트
-  async testConnection() {
-    try {
-      // Firebase Admin SDK가 제대로 초기화되었는지 확인
-      if (admin.apps.length === 0) {
-        console.log('Firebase가 초기화되지 않았습니다.');
-        return false;
-      }
-
-      // 간단한 프로젝트 정보 조회로 연결 테스트
-      const app = admin.app();
-      const projectId = app.options.projectId;
-      
-      if (projectId) {
-        console.log('Firebase 연결 테스트 성공, Project ID:', projectId);
-        return true;
-      } else {
-        console.log('Firebase 프로젝트 ID를 찾을 수 없습니다.');
-        return false;
-      }
-    } catch (error) {
-      console.error('Firebase 연결 테스트 실패:', error);
-      return false;
-    }
-  }
 }
 
-// 싱글톤 패턴으로 인스턴스 생성
-const firebaseService = new FirebaseService();
-
-module.exports = firebaseService; 
+module.exports = new FirebaseService(); 

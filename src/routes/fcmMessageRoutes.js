@@ -5,10 +5,22 @@ const fcmMessageController = require('../controllers/fcmMessageController');
 // Firebase 연결 테스트
 router.get('/fcm/test', fcmMessageController.testConnection);
 
-// 특정 토픽으로 메시지 발송
-router.post('/apps/:appId/fcm/send/:topicId', fcmMessageController.sendToTopic);
+// 특정 토픽으로 메시지 전송
+router.post('/fcm/send-to-topic', fcmMessageController.sendToTopic);
 
-// 앱의 모든 활성 토픽으로 브로드캐스트
-router.post('/apps/:appId/fcm/broadcast', fcmMessageController.broadcastToApp);
+// 특정 토큰으로 메시지 전송
+router.post('/fcm/send-to-token', fcmMessageController.sendToToken);
+
+// 여러 토픽으로 메시지 전송
+router.post('/fcm/send-to-multiple-topics', fcmMessageController.sendToMultipleTopics);
+
+// 앱의 모든 토픽으로 브로드캐스트
+router.post('/fcm/broadcast/:appId', fcmMessageController.broadcastToApp);
+
+// 토픽 구독
+router.post('/fcm/subscribe', fcmMessageController.subscribeToTopic);
+
+// 토픽 구독 해제
+router.post('/fcm/unsubscribe', fcmMessageController.unsubscribeFromTopic);
 
 module.exports = router; 
